@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Automation UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Browser Automation UI</h1>
+        
+        <!-- Task Input Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Enter Your Task</h2>
+            <div class="space-y-4">
+                <textarea 
+                    id="taskInput"
+                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows="3"
+                    placeholder="Example: Go to Reddit, search for 'browser-use' and return the first post's title"></textarea>
+                <button 
+                    onclick="runTask()"
+                    class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                    Run Task
+                </button>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Task Progress</h2>
+            <div id="output" class="space-y-4">
+                <div id="status" class="text-gray-600">Waiting for task...</div>
+                <div id="steps" class="space-y-4 hidden"></div>
+                <div id="error" class="text-red-500 hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function runTask() {
+            const task = document.getElementById('taskInput').value;
+            if (!task) {
+                showError('Please enter a task');
+                return;
+            }
+
+            console.log('Starting task:', task);
+
+            // Update UI
+            document.getElementById('status').textContent = 'Running task...';
+            document.getElementById('steps').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+
+            // Send request
+            fetch('/run_task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ task: task })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showResult(data.result);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('An error occurred: ' + error.message);
+            });
+        }
+
+        function showResult(result) {
+            document.getElementById('status').textContent = 'Task completed!';
+            const stepsElement = document.getElementById('steps');
+            stepsElement.innerHTML = ''; // Clear previous results
+            
+            try {
+                const steps = JSON.parse(result);
+                console.log('Parsed steps:', steps); // Debug log
+                
+                steps.forEach(step => {
+                    const stepElement = document.createElement('div');
+                    stepElement.className = 'bg-white border border-gray-200 rounded-lg p-4 shadow-sm mb-4';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'text-blue-600 font-semibold mb-2';
+                    
+                    // Add step number and type markers
+                    let headerText = `Step ${step.step}`;
+                    switch(step.type) {
+                        case 'result':
+                            headerText += ' - Result';
+                            stepElement.className = 'bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm mb-4';
+                            break;
+                        case 'action':
+                            headerText += ' - Action';
+                            stepElement.className = 'bg-yellow-50 border border-yellow-200 rounded-lg p-4 shadow-sm mb-4';
+                            break;
+                        case 'start':
+                            headerText += ' - Start';
+                            break;
+                        case 'end':
+                            headerText += ' - Complete';
+                            stepElement.className = 'bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm mb-4';
+                            break;
+                        case 'success':
+                            headerText += ' - Success';
+                            stepElement.className = 'bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm mb-4';
+                            break;
+                        case 'goal':
+                            headerText += ' - Goal';
+                            stepElement.className = 'bg-purple-50 border border-purple-200 rounded-lg p-4 shadow-sm mb-4';
+                            break;
+                    }
+                    header.textContent = headerText;
+                    
+                    const content = document.createElement('div');
+                    content.className = 'text-gray-700 whitespace-pre-wrap';
+                    
+                    // Format the content based on type
+                    let formattedContent = step.content;
+                    switch(step.type) {
+                        case 'result':
+                            formattedContent = `📄 ${formattedContent}`;
+                            break;
+                        case 'action':
+                            formattedContent = `🔄 ${formattedContent}`;
+                            break;
+                        case 'start':
+                            formattedContent = `🚀 ${formattedContent}`;
+                            break;
+                        case 'end':
+                            formattedContent = `🏁 ${formattedContent}`;
+                            break;
+                        case 'success':
+                            formattedContent = `✅ ${formattedContent}`;
+                            break;
+                        case 'goal':
+                            formattedContent = `🎯 ${formattedContent}`;
+                            break;
+                        default:
+                            formattedContent = step.content
+                                .split('\n')
+                                .map(line => line.trim())
+                                .filter(line => line)
+                                .join('\n');
+                    }
+                    
+                    content.textContent = formattedContent;
+                    
+                    stepElement.appendChild(header);
+                    stepElement.appendChild(content);
+                    stepsElement.appendChild(stepElement);
+                });
+                
+                stepsElement.classList.remove('hidden');
+            } catch (e) {
+                console.error('Error parsing result:', e); // Debug log
+                showError('Failed to parse result: ' + e.message);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('status').textContent = 'Task failed';
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html> 
