@@ -12,21 +12,46 @@ This project demonstrates how to use the browser-use library with DeepSeek's lan
 
 ## Installation
 
-1. Create a Python virtual environment:
+### Prerequisites
+
+1. Install Python 3.11:
+   - Download and install from [Python.org](https://www.python.org/downloads/)
+
+2. Install Git:
+   - Download and install from [Git Downloads](https://git-scm.com/downloads)
+
+3. Install uv:
+   - Follow instructions at [uv Documentation](https://docs.astral.sh/uv/#highlights)
+
+### Setup
+
+1. Clone the repository:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+git clone git@github.com:muzafferkadir/browser-use-deepseek.git
+cd browser-use-deepseek
 ```
 
-2. Install required packages:
+2. Create and activate virtual environment using uv:
 ```bash
-pip install -r requirements.txt
+uv venv --python 3.11
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-3. Set up your DeepSeek API key:
-   - Get your API key from DeepSeek
-   - Create a `.env` file in the project root
-   - Add your API key: `DEEPSEEK_API_KEY=your_deepseek_api_key_here`
+3. Install dependencies:
+```bash
+uv pip install -r requirements.txt
+```
+
+4. Install Playwright browsers:
+```bash
+playwright install
+```
+
+5. Set up API keys:
+   - Get your API key from [DeepSeek Platform](https://platform.deepseek.com/usage)
+   - Or get your API key from [OpenRouter](https://openrouter.ai/settings/keys)
+   - Create a `.env` file in the project root (copy from .env.example)
+   - Add your API key to the `.env` file
 
 ## Usage
 
@@ -53,7 +78,7 @@ Then open your browser and go to one of these URLs:
 - Network access: http://YOUR_IP_ADDRESS:5001 (replace YOUR_IP_ADDRESS with your computer's IP address)
 
 Using the web interface:
-1. Enter your task in the text area (e.g., "Go to Reddit and search for 'Python'")
+1. Enter your task in the text area
 2. Click the "Run Task" button
 3. Watch the progress in real-time
 4. See the results or any errors in the output section
@@ -62,6 +87,7 @@ Example tasks you can try:
 - "Go to Reddit, search for 'browser-use' and return the first post's title"
 - "Go to YouTube, search for 'browser automation' and get the first video's description"
 - "Go to Wikipedia, search for 'Python programming' and return the first paragraph"
+- "Go to https://www.youtube.com/@muzafferkadir and return the channel name"
 
 ## Requirements
 
