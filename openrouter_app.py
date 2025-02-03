@@ -20,12 +20,11 @@ async def run_search():
         task=('go to amazon.com, search for laptop, sort by best rating, and give me the price of the first result'),
         llm=ChatOpenAI(
             base_url='https://openrouter.ai/api/v1',
-            model='deepseek/deepseek-r1',  # You can change this to any model available on OpenRouter
+            model='qwen/qwen-turbo',
             api_key=SecretStr(api_key)
         ),
-        use_vision=False,
-        max_failures=2,
-        max_actions_per_step=1,
+        retry_delay=3,
+        max_failures=5,
     )
 
     await agent.run()

@@ -14,11 +14,13 @@ from langchain_ollama import ChatOllama
 
 async def run_search() -> AgentHistoryList:
     agent = Agent(
-        task="Search for a 'browser use' post on the r/LocalLLaMA subreddit and open it.",
+        task="Search for the cheapest flight from Samsun to Ankara on 4 February on Google",
         llm=ChatOllama(
-            model="deepseek-r1:8b",
+            model="qwen2.5:7b",
             num_ctx=32000,
         ),
+        retry_delay=3,
+        max_failures=5,
     )
 
     result = await agent.run()
